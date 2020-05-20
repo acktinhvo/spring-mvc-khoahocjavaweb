@@ -1,15 +1,25 @@
 package com.laptrinhjavaweb.entity;
 
+import com.laptrinhjavaweb.annotation.Column;
+import com.laptrinhjavaweb.annotation.Entity;
+import com.laptrinhjavaweb.annotation.Table;
+
+@Entity
+@Table(name = "building")
 public class CustomerEntity {
-	private String fullname;
+
+	@Column(name = "fullname")
+	private String fullName;
+
+	@Column(name = "phone")
 	private String phone;
 
-	public String getFullname() {
-		return fullname;
+	public String getFullName() {
+		return fullName;
 	}
 
-	public void setFullname(String fullname) {
-		this.fullname = fullname;
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
 	}
 
 	public String getPhone() {

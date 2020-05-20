@@ -19,7 +19,7 @@ public class CustomerService implements ICustomerService {
 		List<CustomerEntity> customerEntities = customerRepository.findAll();
 		for (CustomerEntity item : customerEntities) {
 			CustomerDTO customerDTO = new CustomerDTO();
-			customerDTO.setFullname(item.getFullname());
+			customerDTO.setFullname(item.getFullName());
 			customerDTO.setPhone(item.getPhone());
 			result.add(customerDTO);
 		}

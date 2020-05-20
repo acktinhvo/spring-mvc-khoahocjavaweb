@@ -10,7 +10,6 @@ import com.laptrinhjavaweb.repository.impl.BuidingRepository;
 import com.laptrinhjavaweb.service.IBuildingService;
 
 public class BuildingService implements IBuildingService {
-
 	IBuidingRepository buidingRepository = new BuidingRepository();
 
 	@Override
@@ -25,5 +24,4 @@ public class BuildingService implements IBuildingService {
 		}
 		return result;
 	}
-
 }

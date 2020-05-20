@@ -11,7 +11,7 @@ import java.util.List;
 import com.laptrinhjavaweb.entity.CustomerEntity;
 import com.laptrinhjavaweb.repository.ICustomerRepository;
 
-public class CustomerRepository implements ICustomerRepository {
+public class CustomerRepository extends SimpleJpaRepository<CustomerEntity> implements ICustomerRepository {
 
 	final String DB_URL = "jdbc:mysql://localhost:3306/khoahoclaptrinhjavaweb1";
 	final String USER = "root";
@@ -31,12 +31,11 @@ public class CustomerRepository implements ICustomerRepository {
 
 			String sql = "SELECT * FROM Building";
 			rs = stmt.executeQuery(sql);
-			while (rs.next()) {
-				CustomerEntity buidingEntity = new CustomerEntity();
-				buidingEntity.setFullname(rs.getString("fullname"));
-				buidingEntity.setPhone(rs.getString("phone"));
-				result.add(buidingEntity);
-			}
+			/*
+			 * while (rs.next()) { CustomerEntity customerEntity = new CustomerEntity();
+			 * customerEntity.setFullname(rs.getString("fullname"));
+			 * customerEntity.setPhone(rs.getString("phone")); result.add(customerEntity); }
+			 */
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		} finally {
