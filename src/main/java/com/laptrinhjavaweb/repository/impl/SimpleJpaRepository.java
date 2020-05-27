@@ -61,7 +61,7 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 			 * BeanUtils.setProperty(object, field.getName(), columnValue); } } }
 			 * result.add(object); } }
 			 */
-			this.execute(rs);
+			this.execute(rs, result);
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		} finally {
@@ -83,8 +83,7 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 		return result;
 	}
 
-	public List<T> execute(ResultSet rs) {
-		List<T> result = new ArrayList<>();
+	public List<T> execute(ResultSet rs, List<T> result) {
 		Class<T> zClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
 				.getActualTypeArguments()[0];
 		try {
