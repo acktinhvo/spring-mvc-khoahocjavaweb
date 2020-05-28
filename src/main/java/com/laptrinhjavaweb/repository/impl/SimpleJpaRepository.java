@@ -45,23 +45,7 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 			}
 			String sql = "SELECT * FROM " + tableName;
 			rs = stmt.executeQuery(sql);
-			/*
-			 * while (rs.next()) { CustomerEntity customerEntity = new CustomerEntity();
-			 * customerEntity.setFullname(rs.getString("fullname"));
-			 * customerEntity.setPhone(rs.getString("phone")); result.add(customerEntity); }
-			 * 
-			 * if (zClass.isAnnotationPresent(Entity.class)) { ResultSetMetaData
-			 * resultSetMetaData = rs.getMetaData(); Field[] fields =
-			 * zClass.getDeclaredFields(); while (rs.next()) { T object =
-			 * zClass.newInstance(); for (int i = 0; i < resultSetMetaData.getColumnCount();
-			 * i++) { String columnInName = resultSetMetaData.getColumnClassName(i + 1);
-			 * Object columnValue = rs.getObject(i + 1); for (java.lang.reflect.Field field
-			 * : fields) { Column column = field.getAnnotation(Column.class); if
-			 * (column.name().equals(columnInName) && columnValue != null) {
-			 * BeanUtils.setProperty(object, field.getName(), columnValue); } } }
-			 * result.add(object); } }
-			 */
-			this.execute(rs, result);
+			this.execute(rs, result, zClass);
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		} finally {
@@ -83,9 +67,52 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 		return result;
 	}
 
-	public List<T> execute(ResultSet rs, List<T> result) {
+	@Override
+	public List<T> findById(int id) {
+		List<T> result = new ArrayList<>();
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
 		Class<T> zClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
 				.getActualTypeArguments()[0];
+		try {
+			conn = connectionDTB.checkConnection(conn);
+
+			if (conn == null) {
+				return result;
+			}
+
+			stmt = conn.createStatement();
+			String tableName = "";
+			if (zClass.isAnnotationPresent(Table.class)) {
+				Table table = zClass.getAnnotation(Table.class);
+				tableName = table.name();
+			}
+			String sql = "SELECT * FROM " + tableName + " WHERE id = " + id;
+			rs = stmt.executeQuery(sql);
+			this.execute(rs, result, zClass);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+		} finally {
+			// finally block used to close resources
+			try {
+				if (conn != null) {
+					conn.close();
+				}
+				if (stmt != null) {
+					stmt.close();
+				}
+				if (rs != null) {
+					rs.close();
+				}
+			} catch (SQLException se) {
+				se.printStackTrace();
+			}
+		}
+		return result;
+	}
+
+	public List<T> execute(ResultSet rs, List<T> result, Class<T> zClass) {
 		try {
 			if (zClass.isAnnotationPresent(Entity.class)) {
 				ResultSetMetaData resultSetMetaData = rs.getMetaData();
@@ -93,7 +120,7 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 				while (rs.next()) {
 					T object = zClass.newInstance();
 					for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
-						String columnInName = resultSetMetaData.getColumnClassName(i + 1);
+						String columnInName = resultSetMetaData.getColumnName(i + 1);
 						Object columnValue = rs.getObject(i + 1);
 						for (Field field : fields) {
 							Column column = field.getAnnotation(Column.class);
