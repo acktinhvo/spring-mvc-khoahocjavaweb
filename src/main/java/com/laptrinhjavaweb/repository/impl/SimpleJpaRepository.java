@@ -1,19 +1,13 @@
 package com.laptrinhjavaweb.repository.impl;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.beanutils.BeanUtils;
-
-import com.laptrinhjavaweb.annotation.Column;
-import com.laptrinhjavaweb.annotation.Entity;
 import com.laptrinhjavaweb.annotation.Table;
 import com.laptrinhjavaweb.connection.ConnectionDTB;
 import com.laptrinhjavaweb.repository.IJpaRepository;
@@ -21,6 +15,8 @@ import com.laptrinhjavaweb.repository.IJpaRepository;
 public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 
 	private ConnectionDTB connectionDTB = new ConnectionDTB();
+
+	private ConvertData<T> converData = new ConvertData<T>();
 
 	@SuppressWarnings("unchecked")
 	public List<T> findAll() {
@@ -45,7 +41,7 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 			}
 			String sql = "SELECT * FROM " + tableName;
 			rs = stmt.executeQuery(sql);
-			this.execute(rs, result, zClass);
+			result = converData.convertDataToList(rs, result, zClass);
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		} finally {
@@ -68,20 +64,20 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 	}
 
 	@Override
-	public List<T> findById(int id) {
-		List<T> result = new ArrayList<>();
+	public T findById(int id) {
+		T result = null;
 		Connection conn = null;
 		Statement stmt = null;
 		ResultSet rs = null;
 		Class<T> zClass = (Class<T>) ((ParameterizedType) getClass().getGenericSuperclass())
 				.getActualTypeArguments()[0];
 		try {
+			result = zClass.newInstance();
 			conn = connectionDTB.checkConnection(conn);
 
 			if (conn == null) {
 				return result;
 			}
-
 			stmt = conn.createStatement();
 			String tableName = "";
 			if (zClass.isAnnotationPresent(Table.class)) {
@@ -90,7 +86,7 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 			}
 			String sql = "SELECT * FROM " + tableName + " WHERE id = " + id;
 			rs = stmt.executeQuery(sql);
-			this.execute(rs, result, zClass);
+			result = converData.converDataToEntity(rs, result, zClass);
 		} catch (Exception exception) {
 			exception.printStackTrace();
 		} finally {
@@ -108,32 +104,6 @@ public class SimpleJpaRepository<T> implements IJpaRepository<T> {
 			} catch (SQLException se) {
 				se.printStackTrace();
 			}
-		}
-		return result;
-	}
-
-	public List<T> execute(ResultSet rs, List<T> result, Class<T> zClass) {
-		try {
-			if (zClass.isAnnotationPresent(Entity.class)) {
-				ResultSetMetaData resultSetMetaData = rs.getMetaData();
-				Field[] fields = zClass.getDeclaredFields();
-				while (rs.next()) {
-					T object = zClass.newInstance();
-					for (int i = 0; i < resultSetMetaData.getColumnCount(); i++) {
-						String columnInName = resultSetMetaData.getColumnName(i + 1);
-						Object columnValue = rs.getObject(i + 1);
-						for (Field field : fields) {
-							Column column = field.getAnnotation(Column.class);
-							if (column.name().equals(columnInName) && columnValue != null) {
-								BeanUtils.setProperty(object, field.getName(), columnValue);
-							}
-						}
-					}
-					result.add(object);
-				}
-			}
-		} catch (Exception e) {
-			System.out.println(e);
 		}
 		return result;
 	}

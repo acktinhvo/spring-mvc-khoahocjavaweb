@@ -5,5 +5,5 @@ import java.util.List;
 public interface IJpaRepository<T> {
 	List<T> findAll();
 
-	List<T> findById(int id);
+	T findById(int id);
 }
